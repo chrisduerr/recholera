@@ -1,0 +1,7 @@
+[package]
+name = "recholera"
+version = "0.1.0"
+authors = ["Christian Dürr <contact@christianduerr.com>"]
+
+[dependencies]
+error-chain = "0.10.0"
