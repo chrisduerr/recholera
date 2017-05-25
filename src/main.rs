@@ -3,6 +3,8 @@
 #[macro_use]
 extern crate error_chain;
 extern crate regex;
+#[cfg(test)]
+extern crate tempdir;
 
 mod replace;
 mod errors {
