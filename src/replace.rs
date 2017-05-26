@@ -6,6 +6,12 @@ use errors::*;
 pub fn replace(path: &str, old: &str, new: &str, backup_dir: &str) -> Result<()> {
     let file_old = load_file(path)?;
 
+    if !file_old.to_uppercase().contains(&old.to_uppercase()) {
+        println!("\"{}\" doesn't contain \"{}\".", path, old);
+        println!("Exited without any change or backup.");
+        return Ok(());
+    }
+
     // Create backup
     let mut backup_file = String::from(backup_dir) + path;
     backup_file = backup_file.replace("//", "/");
