@@ -7,7 +7,8 @@ pub fn replace(path: &str, old: &str, new: &str, backup_dir: &str) -> Result<()>
     let file_old = load_file(path)?;
 
     // Create backup
-    let backup_file = String::from(backup_dir) + path;
+    let mut backup_file = String::from(backup_dir) + path;
+    backup_file = backup_file.replace("//", "/");
     save_file(&backup_file, &file_old)?;
 
     // Replace and save
@@ -81,7 +82,7 @@ fn test_save_creating_dirs() {
 fn test_replace() {
     let tmp_dir = tempdir::TempDir::new("test").unwrap();
     let file_path = get_tmp_path(&tmp_dir, "replace");
-    let backup_path = get_tmp_path(&tmp_dir, "backup");
+    let backup_path = get_tmp_path(&tmp_dir, "backup/");
     let _ = save_file(&file_path, "#FF00FF");
     let _ = replace(&file_path, "#FF00FF", "#00FF00", &backup_path);
     let output = load_file(&file_path);
@@ -93,7 +94,7 @@ fn test_replace() {
 fn test_replace_case_insensitive() {
     let tmp_dir = tempdir::TempDir::new("test").unwrap();
     let file_path = get_tmp_path(&tmp_dir, "replace_case_insensitive");
-    let backup_path = get_tmp_path(&tmp_dir, "backup");
+    let backup_path = get_tmp_path(&tmp_dir, "backup/");
     let _ = save_file(&file_path, "#FF00FF");
     let _ = replace(&file_path, "#ff00ff", "#00ff00", &backup_path);
     let output = load_file(&file_path);
@@ -105,7 +106,7 @@ fn test_replace_case_insensitive() {
 fn test_replace_creating_backup() {
     let tmp_dir = tempdir::TempDir::new("test").unwrap();
     let file_path = get_tmp_path(&tmp_dir, "replace_creating_backup");
-    let backup_path = get_tmp_path(&tmp_dir, "backup");
+    let backup_path = get_tmp_path(&tmp_dir, "backup/");
     let _ = save_file(&file_path, "#ff00ff");
     let _ = replace(&file_path, "#ff00ff", "#00ff00", &backup_path);
     let output = load_file(&(backup_path + &file_path));

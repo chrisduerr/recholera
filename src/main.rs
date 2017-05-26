@@ -44,7 +44,7 @@ fn run() -> Result<()> {
     let file = args.value_of("FILE").unwrap();
     let current_color = args.value_of("CURRENT_COLOR").unwrap();
     let new_color = args.value_of("NEW_COLOR").unwrap();
-    replace(file, current_color, new_color, "./backup")?;
+    replace(file, current_color, new_color, "./backup/")?;
 
     Ok(())
 }
