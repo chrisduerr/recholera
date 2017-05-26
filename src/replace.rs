@@ -3,7 +3,7 @@ use regex::RegexBuilder;
 use std::{fs, path};
 use errors::*;
 
-fn replace(path: &str, old: &str, new: &str, backup_dir: &str) -> Result<()> {
+pub fn replace(path: &str, old: &str, new: &str, backup_dir: &str) -> Result<()> {
     let file_old = load_file(path)?;
 
     // Create backup
