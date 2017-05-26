@@ -1,4 +1,4 @@
-use std::io::{Read, Write};
+use std::io::{Read, Write, stdin};
 use regex::RegexBuilder;
 use walkdir::WalkDir;
 use std::{fs, path};
@@ -7,10 +7,21 @@ use errors::*;
 pub fn replace(path: &str, old: &str, new: &str, backup_dir: &str) -> Result<()> {
     let file_old = load_file(path)?;
 
-    if !file_old.to_uppercase().contains(&old.to_uppercase()) {
+    let uppercase_content = file_old.to_uppercase();
+    if !uppercase_content.contains(&old.to_uppercase()) {
         println!("\"{}\" doesn't contain \"{}\".", path, old);
         println!("Exited without any change or backup.");
         return Ok(());
+    } else if uppercase_content.contains(&new.to_uppercase()) {
+        let mut buf = String::new();
+        println!("\"{}\" already exists in \"{}\", do you want to keep going? [y/N]?",
+                 new,
+                 path);
+        stdin().read_line(&mut buf)?;
+        if buf.to_lowercase().trim() != "y" {
+            println!("Exited without any change or backup.");
+            return Ok(());
+        }
     }
 
     // Create backup
@@ -35,6 +46,7 @@ pub fn restore_backup(backup_dir: &str) -> Result<()> {
         backup_dir.len()
     };
 
+    // Go through every entry in the backup directory, restore it if it's a file
     for entry in WalkDir::new(backup_dir).into_iter().filter_map(|e| e.ok()) {
         let backup_path = entry.path().to_str().ok_or("Not a valid path.")?;
         let metadata = fs::metadata(backup_path)?;
