@@ -7,6 +7,8 @@ use errors::*;
 pub fn replace(path: &str, old: &str, new: &str, backup_dir: &str) -> Result<()> {
     let file_old = load_file(path)?;
 
+    // Abort if old color doesn't exist
+    // Abort if new color exists and user confirms abortion
     let uppercase_content = file_old.to_uppercase();
     if !uppercase_content.contains(&old.to_uppercase()) {
         println!("\"{}\" doesn't contain \"{}\".", path, old);
