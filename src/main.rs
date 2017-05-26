@@ -2,6 +2,7 @@
 
 #[macro_use]
 extern crate error_chain;
+extern crate walkdir;
 extern crate regex;
 extern crate clap;
 #[cfg(test)]
@@ -17,10 +18,12 @@ mod errors {
     }
 }
 
-use replace::replace;
+use replace::{replace, restore_backup};
 use errors::*;
 
 quick_main!(run);
+
+const BACKUP_DIR: &str = "./backup/";
 
 fn run() -> Result<()> {
     let args = clap::App::new("Recholera")
@@ -29,22 +32,30 @@ fn run() -> Result<()> {
         .about("A simple and safe way to change colors")
         .arg(clap::Arg::with_name("FILE")
                  .help("File which will be changed")
-                 .required(true)
+                 .required_unless("revert")
                  .index(1))
         .arg(clap::Arg::with_name("CURRENT_COLOR")
                  .help("The current color")
-                 .required(true)
+                 .required_unless("revert")
                  .index(2))
         .arg(clap::Arg::with_name("NEW_COLOR")
                  .help("The new color")
-                 .required(true)
+                 .required_unless("revert")
                  .index(3))
+        .arg(clap::Arg::with_name("revert")
+                 .long("revert")
+                 .conflicts_with("FILE")
+                 .short("r")
+                 .help("Revert all changes from backup"))
         .get_matches();
 
-    let file = args.value_of("FILE").unwrap();
-    let current_color = args.value_of("CURRENT_COLOR").unwrap();
-    let new_color = args.value_of("NEW_COLOR").unwrap();
-    replace(file, current_color, new_color, "./backup/")?;
+    if let Some(file) = args.value_of("FILE") {
+        let current_color = args.value_of("CURRENT_COLOR").unwrap();
+        let new_color = args.value_of("NEW_COLOR").unwrap();
+        replace(file, current_color, new_color, BACKUP_DIR)?;
+    } else {
+        restore_backup(BACKUP_DIR)?;
+    }
 
     Ok(())
 }

@@ -1,5 +1,6 @@
 use std::io::{Read, Write};
 use regex::RegexBuilder;
+use walkdir::WalkDir;
 use std::{fs, path};
 use errors::*;
 
@@ -24,6 +25,29 @@ pub fn replace(path: &str, old: &str, new: &str, backup_dir: &str) -> Result<()>
     let file_new = re.replace_all(&file_old, new);
 
     save_file(path, &file_new)
+}
+
+pub fn restore_backup(backup_dir: &str) -> Result<()> {
+    // Get fixed base path independent of ending with / or not
+    let path_base_len = if backup_dir.ends_with("/") {
+        backup_dir.len() - 1
+    } else {
+        backup_dir.len()
+    };
+
+    for entry in WalkDir::new(backup_dir).into_iter().filter_map(|e| e.ok()) {
+        let backup_path = entry.path().to_str().ok_or("Not a valid path.")?;
+        let metadata = fs::metadata(backup_path)?;
+        if metadata.is_file() {
+            let target_path = &backup_path[path_base_len..];
+
+            let content = load_file(backup_path)?;
+            save_file(target_path, &content)?;
+        }
+    }
+
+    fs::remove_dir_all(backup_dir)?;
+    Ok(())
 }
 
 // Save a file and create required directories
@@ -116,6 +140,19 @@ fn test_replace_creating_backup() {
     let _ = save_file(&file_path, "#ff00ff");
     let _ = replace(&file_path, "#ff00ff", "#00ff00", &backup_path);
     let output = load_file(&(backup_path + &file_path));
+
+    assert_eq!(output.unwrap(), "#ff00ff");
+}
+
+#[test]
+fn test_restore_backup() {
+    let tmp_dir = tempdir::TempDir::new("test").unwrap();
+    let tmp_backup_dir = tempdir::TempDir::new("backup").unwrap();
+    let target_file = get_tmp_path(&tmp_dir, "restore_backup");
+    let backup_file = get_tmp_path(&tmp_backup_dir, &target_file[1..]);
+    let _ = save_file(&backup_file, "#ff00ff");
+    let _ = restore_backup(tmp_backup_dir.path().to_str().unwrap());
+    let output = load_file(&target_file);
 
     assert_eq!(output.unwrap(), "#ff00ff");
 }
