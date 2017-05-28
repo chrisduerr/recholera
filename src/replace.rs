@@ -42,7 +42,7 @@ pub fn replace(path: &str, old: &str, new: &str, backup_dir: &str) -> Result<()>
 
 pub fn restore_backup(backup_dir: &str) -> Result<()> {
     // Get fixed base path independent of ending with / or not
-    let path_base_len = if backup_dir.ends_with("/") {
+    let path_base_len = if backup_dir.ends_with('/') {
         backup_dir.len() - 1
     } else {
         backup_dir.len()
@@ -67,7 +67,7 @@ pub fn restore_backup(backup_dir: &str) -> Result<()> {
 // Save a file and create required directories
 fn save_file(path: &str, data: &str) -> Result<()> {
     let path = path::Path::new(path);
-    let parent = path.parent().unwrap_or(path::Path::new(""));
+    let parent = path.parent().unwrap_or_else(|| path::Path::new(""));
     fs::create_dir_all(parent)?;
     fs::File::create(path)?.write_all(data.as_bytes())?;
     Ok(())
